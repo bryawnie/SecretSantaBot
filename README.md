@@ -9,7 +9,7 @@ Well, first of all, if you want to download this proyect and create your own bot
 
 ## How to run?
 When you download the code, it will be necessary to:
-1. Create a database `db.sqlite3` in project's root folder (you can choose another name but by default this code assumes that one).
+1. Create a database `db.sqlite` in project's root folder (you can choose another name but by default this code assumes that one).
 2. Create an environment (I suggest using `python3 -m venv <env_path>`).
 3. Activate your new environment (in Linux  `source <env_path>/bin/activate`).
 4. Install bot's requirements with `pip3 install -r requirements.txt`.
