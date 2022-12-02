@@ -33,7 +33,7 @@ def start(update: Update, context: CallbackContext):
 
     user = update.message.from_user
     if cur.execute(f"SELECT * FROM friends WHERE user_id={user.id}").fetchone() is None:
-        cur.execute(f"INSERT INTO friends VALUES({user.id}, '{user.first_name} {user.last_name}', 0, '', '')")
+        cur.execute(f"INSERT INTO friends VALUES({user.id}, '{user.first_name} {user.last_name}', 0, 0)")
         con.commit()
         update.message.reply_text(f"Hola {user.first_name}!, Juguemos al amigo secreto :)\n\n" + help_text)
     else:
