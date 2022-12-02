@@ -92,7 +92,7 @@ def add_dislike(update: Update, context: CallbackContext):
         user_like_id = 1
     else:
         user_like_id = int(last_dislike[0]) + 1
-    cur.execute(f"INSERT INTO likes VALUES({user_id}, {user_like_id}, '{pls_do_not}')")
+    cur.execute(f"INSERT INTO dislikes VALUES({user_id}, {user_like_id}, '{pls_do_not}')")
     con.commit()
     update.message.reply_text(f"Se agregó {pls_do_not} a tus restricciones de regalo.")
 
