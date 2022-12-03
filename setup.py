@@ -9,8 +9,7 @@ def setup():
     cur.execute("CREATE TABLE dislikes (user_id, user_dislike_id, description)")
     cur.execute("CREATE TABLE games (game_id, title)")
 
-    cur.execute(f"INSERT INTO games VALUES(1, 'Juego de Prueba')")
-    cur.execute(f"INSERT INTO games VALUES(17, 'Ameko Secreto 2023')")
+    cur.execute(f"INSERT INTO games VALUES(0, 'Juego de Prueba')")
 
     con.commit()
 

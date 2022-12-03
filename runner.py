@@ -69,7 +69,10 @@ def add_like(update: Update, context: CallbackContext):
         return
 
     try:
-        possible_gift = ' '.join(update.message.text.split(' ')[1:]).replace("'", '') # delete single quotes
+        possible_gift = ' '.join(update.message.text.split(' ')[1:]).replace("'", '').strip() # delete single quotes
+        if possible_gift == '':
+            update.message.reply_text("Debes ingresar un elemento para añadirlo como sugerencia: /sugerencia <regalo>")
+            return
         new_id = get_new_id("user_like_id", "likes", user_id)
         cur.execute(f"INSERT INTO likes VALUES ({user_id}, {new_id}, '{possible_gift}')")
         con.commit()
@@ -90,7 +93,10 @@ def add_dislike(update: Update, context: CallbackContext):
         return
 
     try:
-        pls_do_not = ' '.join(update.message.text.split(' ')[1:]).replace("'", '') # delete single quotes
+        pls_do_not = ' '.join(update.message.text.split(' ')[1:]).replace("'", '').strip() # delete single quotes
+        if possible_gift == '':
+            update.message.reply_text("Debes ingresar un elemento para añadirlo como restricción: /restriccion <no_regalo>")
+            return
         new_id = get_new_id("user_dislike_id", "dislikes", user_id)
         cur.execute(f"INSERT INTO dislikes VALUES({user_id}, {new_id}, '{pls_do_not}')")
         con.commit()
