@@ -70,9 +70,9 @@ def add_like(update: Update, context: CallbackContext):
 
     try:
         possible_gift = ' '.join(update.message.text.split(' ')[1:]).replace("'", '').strip() # delete single quotes
-        if possible_gift == '':
-            update.message.reply_text("Debes ingresar un elemento para añadirlo como sugerencia: /sugerencia <regalo>")
-            return
+        # if possible_gift == '':
+        #     update.message.reply_text("Debes ingresar un elemento para añadirlo como sugerencia: /sugerencia <regalo>")
+        #     return
         new_id = get_new_id("user_like_id", "likes", user_id)
         cur.execute(f"INSERT INTO likes VALUES ({user_id}, {new_id}, '{possible_gift}')")
         con.commit()
@@ -94,9 +94,9 @@ def add_dislike(update: Update, context: CallbackContext):
 
     try:
         pls_do_not = ' '.join(update.message.text.split(' ')[1:]).replace("'", '').strip() # delete single quotes
-        if possible_gift == '':
-            update.message.reply_text("Debes ingresar un elemento para añadirlo como restricción: /restriccion <no_regalo>")
-            return
+        # if pls_do_not == '':
+        #     update.message.reply_text("Debes ingresar un elemento para añadirlo como restricción: /restriccion <no_regalo>")
+        #     return
         new_id = get_new_id("user_dislike_id", "dislikes", user_id)
         cur.execute(f"INSERT INTO dislikes VALUES({user_id}, {new_id}, '{pls_do_not}')")
         con.commit()
@@ -177,11 +177,11 @@ def set_ready(update: Update, context: CallbackContext):
     update.message.reply_text("Una vez que todxs estén listxs podrás conocer a tu fren con /verAmigx.")
 
 
-def obtain_friend(self, update: Update, context: CallbackContext):
+def obtain_friend(update: Update, context: CallbackContext):
     update.message.reply_text("Falta gente por terminar de llenar sus datos, por favor intenta más tarde.")
 
 
-def unknown(self, update: Update, context: CallbackContext):
+def unknown(update: Update, context: CallbackContext):
     pass
 
 
