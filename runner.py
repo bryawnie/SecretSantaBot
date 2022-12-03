@@ -65,6 +65,7 @@ def add_like(update: Update, context: CallbackContext):
         return
 
     possible_gift = ' '.join(update.message.text.split(' ')[1:])
+    possible_gift.replace("'", '') # delete single quotes
     last_like = cur.execute(f"SELECT user_like_id FROM likes WHERE user_id={user_id} ORDER BY user_like_id DESC LIMIT 1").fetchone()
     if last_like is None:
         user_like_id = 1
@@ -87,12 +88,13 @@ def add_dislike(update: Update, context: CallbackContext):
         return
 
     pls_do_not = ' '.join(update.message.text.split(' ')[1:])
+    pls_do_not.replace("'", '') # delete single quotes
     last_dislike = cur.execute(f"SELECT user_dislike_id FROM dislikes WHERE user_id={user_id} ORDER BY user_dislike_id DESC LIMIT 1").fetchone()
     if last_dislike is None:
-        user_like_id = 1
+        user_dislike_id = 1
     else:
-        user_like_id = int(last_dislike[0]) + 1
-    cur.execute(f"INSERT INTO dislikes VALUES({user_id}, {user_like_id}, '{pls_do_not}')")
+        user_dislike_id = int(last_dislike[0]) + 1
+    cur.execute(f"INSERT INTO dislikes VALUES({user_id}, {user_dislike_id}, '{pls_do_not}')")
     con.commit()
     update.message.reply_text(f"Se agregó {pls_do_not} a tus restricciones de regalo.")
 
@@ -118,7 +120,7 @@ def list_dislikes(update: Update, context: CallbackContext):
     if len(dislikes) == 0:
         update.message.reply_text("No tienes regalos que particularmente te desagraden. ¿Segurx?")
     else:
-        update.message.reply_text("Estos son los regalos que no te gustaría recibir por ningún motivo:\n\n" + '\n - '.join([f"{dislike[1]}: {dislike[2]}" for dislike in dislikes]))
+        update.message.reply_text("Estos son los regalos que no te gustaría recibir por ningún motivo:\n\n" + '\n'.join([f"{dislike[1]}: {dislike[2]}" for dislike in dislikes]))
 
 
 def remove_like(update: Update, context: CallbackContext):
