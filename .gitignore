@@ -1,3 +1,5 @@
 db.sqlite
 config.json
 .venv/
+__pycache__
+venv
