@@ -8,6 +8,7 @@ def setup():
     cur.execute("CREATE TABLE likes (user_id, user_like_id, description)")
     cur.execute("CREATE TABLE dislikes (user_id, user_dislike_id, description)")
     cur.execute("CREATE TABLE games (game_id, title)")
+    cur.execute("CREATE TABLE secret_santa (gives, receives)")
 
     cur.execute(f"INSERT INTO games VALUES(0, 'Juego de Prueba')")
 
