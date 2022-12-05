@@ -1,5 +1,5 @@
 from .chacha20generator import ChaChaRand
-from .helpers import sha3_256_user_id
+from .helpers import sha3_256_user_id, format_friend
 import requests
 
 # Using a randomness beacon allows further verification of the randomness
@@ -15,7 +15,7 @@ def shuffle(users: list):
     random = ChaChaRand(get_seed())
     return random.shuffle(users)
 
-def shuffle_players(ids_players: list, database: str):
+def shuffle_players(ids_players: list, database: str, token: str):
     shuffled_players = shuffle(ids_players)
 
     con = connect(database)
@@ -25,5 +25,7 @@ def shuffle_players(ids_players: list, database: str):
         gives = sha3_256_user_id(shuffled_players[i])
         receives = shuffled_players[(i + 1) % len(shuffled_players)]
         cur.execute(f"INSERT INTO secret_santa VALUES({gives}, {receives})")
+        msg = format_friend(database, receives)
+        requests.get(f"https://api.telegram.org/bot{token}/sendMessage?chat_id={shuffled_players[i]}&text={msg}")
     con.commit()
     con.close()

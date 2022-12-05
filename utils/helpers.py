@@ -57,5 +57,53 @@ def get_secret_friend(database, id_player):
     receives = cur.execute(f"SELECT receives FROM secret_santa WHERE gives='{sha3_256_user_id(id_player)}'").fetchone()
     if receives is None:
         return None
-    secret_friend = cur.execute(f"SELECT name FROM friends WHERE user_id={receives[0]}").fetchone()[0]
-    return secret_friend
+    return receives[0]
+
+def get_name(database, id_player):
+    """
+        Returns the name of the player.
+    """
+    con = connect(database)
+    name = con.cursor().execute(f"SELECT name FROM friends WHERE user_id={id_player}").fetchone()
+    con.close()
+    if name is None:
+        return None
+    return name[0].replace("None", "").strip()
+
+def format_preferences(preferences):
+    """
+        Returns a string with the likes of a player.
+    """
+    return '\n'.join([f"{pref[1]}: {pref[2]}" for pref in preferences])
+
+def get_preferences(database, table, id_player):
+    """
+        Returns a list of all the likes of a player.
+    """
+    con = connect(database)
+    likes = con.cursor().execute(f"SELECT * FROM {table} WHERE user_id={id_player}").fetchall()
+    con.close()
+    if likes is None:
+        return None
+    return likes
+
+def format_friend(database, id_friend):
+    """
+        Returns a string with the name of the player and his secret friend.
+    """
+    try:
+        name = get_name(database, id_friend)
+        likes = format_preferences(get_preferences(database, 'likes', id_friend))
+        dislikes = format_preferences(get_preferences(database, 'dislikes', id_friend))
+        message = (
+            f"Tu amix secretx es {name} :D.\n"+
+            f"Te daremos algunos datitos para que puedas conocerlx mejor :3.\n"+
+            f"Estas son las sugerencias que indicó:\n"+
+            f"{likes}\n"+
+            f"Y... estas son las cosas que NO le gustan:\n"+
+            f"{dislikes}\n"+
+            f"Esperamos que te diviertas con tu amix secretx ♥️."
+        )
+        return message
+    except:
+        return "Hubo un error al obtener los datos de tu amix secretx :c, pls informale a @bryawnie"

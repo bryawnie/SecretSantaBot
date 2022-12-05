@@ -212,9 +212,9 @@ def obtain_friend(update: Update, context: CallbackContext):
         update.message.reply_text("Todavía no estás listx para conocer a tu fren. Cuando estés listx, escribe /ready.")
         return
 
-    my_friend = get_secret_friend(DATABASE, user_id)
-    if my_friend is not None:
-        update.message.reply_text(f"Debes regalarle algo a {my_friend} <3")
+    my_friend_id = get_secret_friend(DATABASE, user_id)
+    if my_friend_id is not None:
+        update.message.reply_text(format_friend(DATABASE, my_friend_id))
         return
     
     game_id = get_user_game_id(DATABASE, user_id)
@@ -224,9 +224,7 @@ def obtain_friend(update: Update, context: CallbackContext):
         update.message.reply_text("Falta gente por terminar de llenar sus datos, por favor intenta más tarde.")
         return
 
-    shuffle_players([player[0] for player in players], DATABASE)
-    my_friend = get_secret_friend(DATABASE, user_id)
-    update.message.reply_text(f"Debes regalarle algo a {my_friend} <3")
+    shuffle_players([player[0] for player in players], DATABASE, TOKEN)
 
 
 def ping(update: Update, context: CallbackContext):
