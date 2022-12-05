@@ -1,4 +1,5 @@
 import hashlib
+from sqlite3 import connect
 
 # Auxiliary function
 def get_new_id(database: str, field_name: str, table_name: str, user_id: int):
@@ -52,7 +53,7 @@ def sha3_256_user_id(user_id: int):
 
 
 def get_secret_friend(database, id_player):
-    con = connect(DATABASE)
+    con = connect(database)
     cur = con.cursor()
     receives = cur.execute(f"SELECT receives FROM secret_santa WHERE gives='{sha3_256_user_id(id_player)}'").fetchone()
     if receives is None:
@@ -84,7 +85,7 @@ def get_preferences(database, table, id_player):
     likes = con.cursor().execute(f"SELECT * FROM {table} WHERE user_id={id_player}").fetchall()
     con.close()
     if likes is None:
-        return None
+        return []
     return likes
 
 def format_friend(database, id_friend):
@@ -102,7 +103,8 @@ def format_friend(database, id_friend):
             f"{likes}\n"+
             f"Y... estas son las cosas que NO le gustan:\n"+
             f"{dislikes}\n"+
-            f"Esperamos que te diviertas con tu amix secretx ♥️."
+            f"Te recuerdo que los montos acordados son regalos entre 5k y 10k ;)\n"+
+            f"Espero que te diviertas con tu amix secretx ♥️."
         )
         return message
     except:
