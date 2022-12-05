@@ -6,88 +6,14 @@ from telegram.ext.messagehandler import MessageHandler
 from telegram.ext.filters import Filters
 
 from sqlite3 import connect
-import hashlib
 
-from utils.messages import COMMANDS_MSG, READY_MSG, HELP_MSG
-from utils.shuffle import shuffle
+from utils.messages import *
+from utils.shuffle import shuffle_players
+from utils.helpers import *
 
 TOKEN = "YOUR_TOKEN"
 DATABASE = "db.sqlite"
 
-
-# Auxiliary function
-def get_new_id(field_name: str, table_name: str, user_id: int):
-    """
-    Returns the next id for a new row in a table, given the user_id.
-    Specifically designed for likes and dislikes tables.
-    """
-    con = connect(DATABASE)
-    last_id = con.cursor().execute(f"SELECT {field_name} FROM {table_name} WHERE user_id={user_id} ORDER BY {field_name} DESC LIMIT 1").fetchone()
-    con.close()
-    if last_id is None:
-        return 1
-    return int(last_id[0]) + 1
-
-
-def get_user_game_id(user_id: int):
-    """
-        Returns the game_id of the user.
-    """
-    con = connect(DATABASE)
-    game_id = con.cursor().execute(f"SELECT game_id FROM friends WHERE user_id={user_id}").fetchone()[0]
-    con.close()
-    return game_id
-
-
-# Auxiliary function
-def is_ready(user_id: int):
-    """
-        Returns True if user is ready to play, False otherwise.
-        Ready means that user has sent the command /ready.
-    """
-    con = connect(DATABASE)
-    ready = con.cursor().execute(f"SELECT ready FROM friends WHERE user_id={user_id}").fetchone()[0]
-    con.close()
-    return ready == 1
-
-def get_players_list(game_id: int):
-    """
-        Returns a list of all the players of a game.
-    """
-    con = connect(DATABASE)
-    players = con.cursor().execute(f"SELECT user_id, ready FROM friends WHERE game_id={game_id}").fetchall()
-    con.close()
-    return players
-
-
-def sha3_256(user_id: int):
-    """
-        Returns the sha3_256 hash of the user_id.
-    """
-    return hashlib.sha3_256(str(user_id).encode('utf-8')).hexdigest()
-
-
-def shuffle_players(ids_players: list):
-    shuffled_players = shuffle(ids_players)
-
-    con = connect(DATABASE)
-    cur = con.cursor()
-    for i in len(shuffled_players):
-        # Hiding secret friend
-        gives = sha3_256(shuffled_players[i])
-        receives = shuffled_players[(i + 1) % len(shuffled_players)]
-        cur.execute(f"INSERT INTO secret_santa VALUES({gives}, {receives})")
-    con.commit()
-    con.close()
-
-def get_secret_friend(id_player):
-    con = connect(DATABASE)
-    cur = con.cursor()
-    receives = cur.execute(f"SELECT receives FROM secret_santa WHERE gives='{sha3_256(id_player)}'").fetchone()
-    if receives is None:
-        return None
-    secret_friend = cur.execute(f"SELECT name FROM friends WHERE user_id={receives[0]}").fetchone()[0]
-    return secret_friend
 
 def start(update: Update, context: CallbackContext):
     """
@@ -144,7 +70,7 @@ def add_like(update: Update, context: CallbackContext):
     cur = con.cursor()
     user_id = update.message.from_user.id
 
-    if is_ready(user_id):
+    if is_ready(DATABASE, user_id):
         update.message.reply_text(READY_MSG)
         return
 
@@ -153,7 +79,7 @@ def add_like(update: Update, context: CallbackContext):
         if possible_gift == '':
             update.message.reply_text("Debes ingresar un elemento para añadirlo como sugerencia: /sugerencia <regalo>")
             return
-        new_id = get_new_id("user_like_id", "likes", user_id)
+        new_id = get_new_id(DATABASE, "user_like_id", "likes", user_id)
         cur.execute(f"INSERT INTO likes VALUES ({user_id}, {new_id}, '{possible_gift}')")
         con.commit()
         con.close()
@@ -171,7 +97,7 @@ def add_dislike(update: Update, context: CallbackContext):
     cur = con.cursor()
     user_id = update.message.from_user.id
     
-    if is_ready(user_id):
+    if is_ready(DATABASE, user_id):
         update.message.reply_text(READY_MSG)
         return
 
@@ -180,7 +106,7 @@ def add_dislike(update: Update, context: CallbackContext):
         if pls_do_not == '':
             update.message.reply_text("Debes ingresar un elemento para añadirlo como restricción: /restriccion <no_regalo>")
             return
-        new_id = get_new_id("user_dislike_id", "dislikes", user_id)
+        new_id = get_new_id(DATABASE, "user_dislike_id", "dislikes", user_id)
         cur.execute(f"INSERT INTO dislikes VALUES({user_id}, {new_id}, '{pls_do_not}')")
         con.commit()
         con.close()
@@ -226,7 +152,7 @@ def remove_like(update: Update, context: CallbackContext):
     cur = con.cursor()
     user_id = update.message.from_user.id
 
-    if is_ready(user_id):
+    if is_ready(DATABASE, user_id):
         update.message.reply_text(READY_MSG)
         return
 
@@ -248,7 +174,7 @@ def remove_dislike(update: Update, context: CallbackContext):
     cur = con.cursor()
     user_id = update.message.from_user.id
 
-    if is_ready(user_id):
+    if is_ready(DATABASE, user_id):
         update.message.reply_text(READY_MSG)
         return
 
@@ -282,24 +208,24 @@ def obtain_friend(update: Update, context: CallbackContext):
         This must be keep secret until the gift is delivered.
     """
     user_id = update.message.from_user.id
-    if not is_ready(user_id):
+    if not is_ready(DATABASE, user_id):
         update.message.reply_text("Todavía no estás listx para conocer a tu fren. Cuando estés listx, escribe /ready.")
         return
 
-    my_friend = get_secret_friend(user_id)
+    my_friend = get_secret_friend(DATABASE, user_id)
     if my_friend is not None:
         update.message.reply_text(f"Debes regalarle algo a {my_friend} <3")
         return
     
-    game_id = get_user_game_id(user_id)
-    players = get_players(game_id)
+    game_id = get_user_game_id(DATABASE, user_id)
+    players = get_players(DATABASE, game_id)
 
     if len(list(filter(lambda x: x[1] == 0, players))) > 0:
         update.message.reply_text("Falta gente por terminar de llenar sus datos, por favor intenta más tarde.")
         return
 
-    shuffle_players([player[0] for player in players])
-    my_friend = get_secret_friend(user_id)
+    shuffle_players([player[0] for player in players], DATABASE)
+    my_friend = get_secret_friend(DATABASE, user_id)
     update.message.reply_text(f"Debes regalarle algo a {my_friend} <3")
 
 
